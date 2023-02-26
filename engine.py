@@ -315,10 +315,11 @@ class Merged(Base):
 
 
 class GDrive:
-    def __init__(self):
+    def __init__(self, gauth=None):
+      if not gauth:
         gauth = GoogleAuth()
         gauth.LocalWebserverAuth() # client_secrets.json need to be in the same directory as the script
-        self.drive = GoogleDrive(gauth)
+      self.drive = GoogleDrive(gauth)
 
     def get_folder_id(self, parent_id, kw):
         fileList = self.drive.ListFile({'q': f"'{parent_id}' in parents and trashed=false"}).GetList()
