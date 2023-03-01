@@ -290,11 +290,6 @@ def download_online_excel_catalogs(df, tmp_dir, test_catalogs=None):
     return catalogs
 
 
-def download_scripts():
-    r=requests.get("https://raw.githubusercontent.com/faysal887/tricyons-analyser-v2/master/engine.py")
-    with open('engine.py', 'w') as f: f.write(r.content.decode("utf-8"))
 
-    r=requests.get("https://raw.githubusercontent.com/faysal887/tricyons-analyser-v2/master/utils.py")
-    with open('utils.py', 'w') as f: f.write(r.content.decode("utf-8"))
 
 
