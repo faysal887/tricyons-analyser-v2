@@ -233,12 +233,12 @@ def download_online_excel_catalogs(df, tmp_dir, test_catalogs=None):
                     catalogdf=make_first_row_header(catalogdf)
 
             elif 'dallaswholesale' in supplier_name:
-                DWS_columns=['ASIN',	'Instock',	'Department',	'Brand'	,'Product Name',	'Unit price',	'Selling on Amazon - Price']
+                DWS_columns = ['AMAZON ASIN',	'UPC',	'YOUR PRICE',	'DESCRIPTION',	'BRAND',	'PRICE LISTED ON AMAZON']
                 catalogdf=get_catalog_google_sheets(url)
                 catalogdf=catalogdf.reset_index(drop=True)
                 catalogdf=catalogdf.iloc[1:, :len(DWS_columns)]
                 catalogdf.columns = DWS_columns 
-                catalogdf = catalogdf[~catalogdf['Unit price'].astype(str).str.contains('price', case=False, regex=False)]
+                catalogdf = catalogdf[~catalogdf['YOUR PRICE'].astype(str).str.contains('price', case=False, regex=False)]
 
             elif 'shepher' in supplier_name:
                 save_path=f'{tmp_dir}/{supplier_name_org}.xls'
@@ -281,7 +281,7 @@ def download_online_excel_catalogs(df, tmp_dir, test_catalogs=None):
             catalogdf.to_excel(f'{tmp_dir}/{supplier_name_org}.xlsx', index=False)
 
         except Exception as e:
-            error_catalogs['supplier_name']=e
+            error_catalogs[supplier_name]=e
 
     print('\n ************************************************* \n')
     print('Error Catalogs: ', error_catalogs)
