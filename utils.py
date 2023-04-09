@@ -175,6 +175,12 @@ def preprocess_nuk(df):
     df=df[df.upc!='assorted']
     return df
 
+  
+def preprocess_bgsales(df):
+    df['upc'] = df['upc'].str.replace('UPC CODE: ', '')
+    df['case_pack'] = df['case_pack'].str.replace('CASE PACK: ', '')
+    return df
+
 
 def download_online_excel_catalogs(df, tmp_dir, test_catalogs=None):
     catalogs={}
