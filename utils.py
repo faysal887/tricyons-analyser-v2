@@ -239,6 +239,7 @@ def download_online_excel_catalogs(df, tmp_dir, test_catalogs=None):
 
             elif 'minmaxdeals' in supplier_name:
                 catalogdf=get_catalog_google_sheets(url).reset_index(drop=True)
+                catalogdf=make_first_row_header(catalogdf)
 
             elif 'gscommoditytrading' in supplier_name:
                 catalogdf=get_catalog_google_sheets(url).reset_index(drop=True)
