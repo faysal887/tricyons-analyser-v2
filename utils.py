@@ -14,6 +14,8 @@ from pathlib import Path
 import urllib.request
 from bs4 import BeautifulSoup
 
+from tabula.io import read_pdf
+
 
 def make_first_row_header(df):
     new_header = df.iloc[0] #grab the first row for the header
@@ -66,6 +68,7 @@ def get_catalog_google_sheets_3(url):
         return df
     except Exception as e:
         return pd.DataFrame()
+
 
 def get_catalog_google_sheets_4(url):
     try:
@@ -182,6 +185,30 @@ def preprocess_bgsales(df):
     return df
 
 
+def preprocess_ewd(tmpdf):
+    tmpdf['COST'] = tmpdf['COST'].str.replace('title_dp','')
+    return tmpdf
+
+
+def download_and_convert_pdf_to_excel(driveid):
+    drivepath =     f'https://drive.google.com/uc?id={driveid}'
+
+    dfs2 = read_pdf(drivepath, pages='all')
+
+    final=pd.DataFrame()
+    for i, pagedf in enumerate(dfs2):
+        if i>0:
+            pagedf = pagedf.columns.to_frame().T.append(pagedf, ignore_index=True)
+            pagedf.columns=final.columns
+            
+        final=pd.concat([final, pagedf])
+        print(final.shape)
+
+    final=final.dropna(how='all').reset_index(drop=True)
+
+    return final
+
+
 def download_online_excel_catalogs(df, tmp_dir, test_catalogs=None):
     catalogs={}
     error_catalogs={}
@@ -201,6 +228,28 @@ def download_online_excel_catalogs(df, tmp_dir, test_catalogs=None):
             
             if test_catalogs and supplier_name not in test_catalogs: 
                 continue
+
+            if 'ecomwholesaledeals' in supplier_name:
+                catalogdf = download_and_convert_pdf_to_excel(url)
+
+            elif 'kntradingllc' in supplier_name:
+                catalogdf=get_catalog_google_sheets_2(url, sheet_name='Sheet1')
+                catalogdf=make_first_row_header(catalogdf)
+                catalogdf=catalogdf[[x for x in catalogdf.columns.tolist() if x!=None]]
+
+            elif 'minmaxdeals' in supplier_name:
+                catalogdf=get_catalog_google_sheets(url).reset_index(drop=True)
+
+            elif 'gscommoditytrading' in supplier_name:
+                catalogdf=get_catalog_google_sheets(url).reset_index(drop=True)
+                catalogdf=catalogdf.iloc[9:]
+
+            elif 'epilsonwholesale' in supplier_name:
+                catalogdf=get_catalog_google_sheets_2(url, sheet_name='Sheet1')
+                catalogdf=catalogdf.iloc[1:]
+                catalogdf=make_first_row_header(catalogdf)
+                catalogdf=catalogdf[~catalogdf.ASIN.astype(str).str.contains('--')]
+                catalogdf=catalogdf.dropna()
 
             elif supplier_name in ['palletfly','coralport_3m','coralport_avery','coralport_telegram','coralport_wholesale','tjsgroupllc']:
                 catalogdf = get_catalog_google_sheets_2(url, sheet_name)
@@ -294,8 +343,4 @@ def download_online_excel_catalogs(df, tmp_dir, test_catalogs=None):
     print('\n ************************************************* \n')
 
     return catalogs
-
-
-
-
 
