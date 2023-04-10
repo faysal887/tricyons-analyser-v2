@@ -135,21 +135,21 @@ def preprocess_upc(df):
 
 
 def label_data(df, catalogs):
-    try:
-        df=df.reset_index(drop=True)
-        df = df.loc[:, ~df.columns.str.contains('Unnamed', case=False, regex=False)]
+    df=df.reset_index(drop=True)
+    df = df.loc[:, ~df.columns.str.contains('Unnamed', case=False, regex=False)]
 
-        # when looping first time or columns already exists
-        try:    df[['id_columns_name', 'id_columns_type', 'price_column']].fillna('not_found', inplace=True)
-        except: df[['id_columns_name', 'id_columns_type', 'price_column']]=None
+    # when looping first time or columns already exists
+    try:    df[['id_columns_name', 'id_columns_type', 'price_column']].fillna('not_found', inplace=True)
+    except: df[['id_columns_name', 'id_columns_type', 'price_column']]=None
 
-        # only loop on missing labels rows
-        unlabeled_suppliers=df[df.id_columns_name.isnull()].Distributor.tolist()
-        if unlabeled_suppliers: print('These suppliers are unlabelled: ', unlabeled_suppliers)
-            # interact(display_df, supplier_name=unlabeled_suppliers)
-        else: 
-            print(f"All Suppliers are Labeled")
-            for name, tmpdf in catalogs.items():
+    # only loop on missing labels rows
+    unlabeled_suppliers=df[df.id_columns_name.isnull()].Distributor.tolist()
+    if unlabeled_suppliers: print('These suppliers are unlabelled: ', unlabeled_suppliers)
+        # interact(display_df, supplier_name=unlabeled_suppliers)
+    else: 
+        print(f"All Suppliers are Labeled")
+        for name, tmpdf in catalogs.items():
+            try:    
                 # tmpdf=catalogs[row.Distributor]
 
                 # record/row in LINKS sheet
@@ -166,12 +166,13 @@ def label_data(df, catalogs):
 
 
                 catalogs[record.Distributor.item()] = tmpdf
+            except Exception as e:
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                print(e, exc_type, fname, exc_tb.tb_lineno)
 
-        return df, catalogs
-    except Exception as e:
-        exc_type, exc_obj, exc_tb = sys.exc_info()
-        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        print(e, exc_type, fname, exc_tb.tb_lineno)
+    return df, catalogs
+
         
 
 def preprocess_nuk(df):
@@ -186,7 +187,9 @@ def preprocess_bgsales(df):
 
 
 def preprocess_ewd(tmpdf):
-    tmpdf['COST'] = tmpdf['COST'].str.replace('title_dp','')
+    tmpdf['each_price'] = tmpdf['each_price'].astype(str).str.replace('title_dp','')
+    tmpdf['each_price'] = tmpdf['each_price'].astype(str).str.replace('itle_dp','')
+
     return tmpdf
 
 
