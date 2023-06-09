@@ -346,5 +346,5 @@ def download_online_excel_catalogs(df, tmp_dir, test_catalogs=None):
     print('Error Catalogs: ', error_catalogs)
     print('\n ************************************************* \n')
 
-    return catalogs
+    return error_catalogs, catalogs
 
