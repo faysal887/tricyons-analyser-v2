@@ -169,12 +169,11 @@ def label_data(df, catalogs):
             except Exception as e:
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                print(e, exc_type, fname, exc_tb.tb_lineno)
+                print(record.Distributor.item(), e, exc_type, fname, exc_tb.tb_lineno)
 
     return df, catalogs
 
         
-
 def preprocess_nuk(df):
     df=df[df.upc!='assorted']
     return df
@@ -187,8 +186,8 @@ def preprocess_bgsales(df):
 
 
 def preprocess_ewd(tmpdf):
-    tmpdf['each_price'] = tmpdf['each_price'].astype(str).str.replace('title_dp','')
-    tmpdf['each_price'] = tmpdf['each_price'].astype(str).str.replace('itle_dp','')
+    tmpdf['COST'] = tmpdf['COST'].astype(str).str.replace('title_dp','')
+    tmpdf['COST'] = tmpdf['COST'].astype(str).str.replace('itle_dp','')
 
     return tmpdf
 
@@ -234,6 +233,7 @@ def download_online_excel_catalogs(df, tmp_dir, test_catalogs=None):
 
             if 'ecomwholesaledeals' in supplier_name:
                 catalogdf = download_and_convert_pdf_to_excel(url)
+                catalogdf = preprocess_ewd(catalogdf)
 
             elif 'kntradingllc' in supplier_name:
                 catalogdf=get_catalog_google_sheets_2(url, sheet_name='Sheet1')
@@ -242,7 +242,10 @@ def download_online_excel_catalogs(df, tmp_dir, test_catalogs=None):
 
             elif 'minmaxdeals' in supplier_name:
                 catalogdf=get_catalog_google_sheets(url).reset_index(drop=True)
+                catalogdf=catalogdf.iloc[5:,]
                 catalogdf=make_first_row_header(catalogdf)
+                catalogdf=strip_column_names(catalogdf)
+
 
             elif 'gscommoditytrading' in supplier_name:
                 catalogdf=get_catalog_google_sheets(url).reset_index(drop=True)
@@ -308,9 +311,27 @@ def download_online_excel_catalogs(df, tmp_dir, test_catalogs=None):
                 catalogdf=catalogdf[catalogdf[id_column]!=' ']
                 catalogdf[id_column]=catalogdf[id_column].astype(float).astype(int)
 
-            elif supplier_name in ['empiredistribution', 'lvdistribution']:
+            elif supplier_name in ['empiredistribution']:
+                # pdb.set_trace()
                 catalogdf=get_catalog_google_sheets(url)
+                catalogdf=catalogdf.iloc[1:, :]
                 catalogdf=make_first_row_header(catalogdf)
+                catalogdf.columns=['UPC', 'Name', 'ASIN', 'QTY', 'MOQ', 'Price' ]
+                # catalogdf=make_first_row_header(catalogdf)
+
+                catalogdf=strip_column_names(catalogdf)
+
+            elif supplier_name in ['lvdistribution']:
+                # pdb.set_trace()
+                catalogdf=get_catalog_google_sheets(url)
+                catalogdf=catalogdf.iloc[1:, :]
+                catalogdf=make_first_row_header(catalogdf)
+                # catalogdf.columns=['UPC', 'Name', 'ASIN', 'QTY', 'MOQ', 'Price' ]
+                # catalogdf=make_first_row_header(catalogdf)
+
+                catalogdf=strip_column_names(catalogdf)
+
+
 
             elif 'cosmetixclub' in supplier_name:
                 catalogdf=get_catalog_google_sheets(url)
@@ -331,7 +352,7 @@ def download_online_excel_catalogs(df, tmp_dir, test_catalogs=None):
             else: # default for all others
                 catalogdf=get_catalog_google_sheets(url)
 
-            if catalogdf.empty: raise Exception('Catalog Empty')
+            if catalogdf.shape[0]==0: raise Exception('Catalog Empty')
 
             catalogs[supplier_name_org]=catalogdf
             catalogdf=strip_column_names(catalogdf)
@@ -341,10 +362,13 @@ def download_online_excel_catalogs(df, tmp_dir, test_catalogs=None):
 
         except Exception as e:
             error_catalogs[supplier_name]=e
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            print('ERROR: ', supplier_name, e, exc_type, fname, exc_tb.tb_lineno)
 
     print('\n ************************************************* \n')
     print('Error Catalogs: ', error_catalogs)
     print('\n ************************************************* \n')
 
-    return catalogs
+    return error_catalogs, catalogs
 
