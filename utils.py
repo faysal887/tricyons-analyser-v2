@@ -345,7 +345,8 @@ def download_online_excel_catalogs(df, tmp_dir, test_catalogs=None):
                 catalogdf=make_first_row_header(catalogdf)
 
             elif supplier_name in ['medcare_bestselling', 'medcare_master', 'medcare_closeout']:
-                catalogdf=get_catalog_google_sheets_2(url, sheet_name='Wholesale Best-Selling List')
+                # pdb.set_trace()
+                catalogdf=get_catalog_google_sheets_2(url, sheet_name=sheet_name)
                 catalogdf=catalogdf.iloc[1:,]
                 catalogdf=make_first_row_header(catalogdf)
                 catalogdf=strip_column_names(catalogdf)
