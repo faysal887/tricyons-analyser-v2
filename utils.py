@@ -169,7 +169,8 @@ def label_data(df, catalogs):
             except Exception as e:
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                print(record.Distributor.item(), e, exc_type, fname, exc_tb.tb_lineno)
+                print(f'Error in {record.Distributor.item()}')
+                print(e, exc_type, fname, exc_tb.tb_lineno)
 
     return df, catalogs
 
@@ -246,7 +247,6 @@ def download_online_excel_catalogs(df, tmp_dir, test_catalogs=None):
                 catalogdf=make_first_row_header(catalogdf)
                 catalogdf=strip_column_names(catalogdf)
 
-
             elif 'gscommoditytrading' in supplier_name:
                 catalogdf=get_catalog_google_sheets(url).reset_index(drop=True)
                 catalogdf=catalogdf.iloc[9:]
@@ -257,10 +257,6 @@ def download_online_excel_catalogs(df, tmp_dir, test_catalogs=None):
                 catalogdf=make_first_row_header(catalogdf)
                 catalogdf=catalogdf[~catalogdf.ASIN.astype(str).str.contains('--')]
                 catalogdf=catalogdf.dropna()
-
-            elif supplier_name in ['palletfly','coralport_3m','coralport_avery','coralport_telegram','coralport_wholesale','tjsgroupllc']:
-                catalogdf = get_catalog_google_sheets_2(url, sheet_name)
-                catalogdf=make_first_row_header(catalogdf)
 
             elif 'nexdeal' in supplier_name:
                 month, year=str(datetime.now().month).zfill(2), str(datetime.now().year)
@@ -311,6 +307,19 @@ def download_online_excel_catalogs(df, tmp_dir, test_catalogs=None):
                 catalogdf=catalogdf[catalogdf[id_column]!=' ']
                 catalogdf[id_column]=catalogdf[id_column].astype(float).astype(int)
 
+            elif 'cosmetixclub' in supplier_name:
+                catalogdf=get_catalog_google_sheets(url)
+                catalogdf=catalogdf.iloc[3:]
+                catalogdf=make_first_row_header(catalogdf)
+
+            elif 'drachmatrading' in supplier_name:
+                catalogdf=get_catalog_google_sheets(url)
+                catalogdf=catalogdf[catalogdf['URL LINK'].str.strip().str.startswith('https://')]
+
+            elif 'buywholesaletoday' in supplier_name:
+                catalogdf=get_catalog_google_sheets(url)
+                catalogdf=catalogdf[catalogdf['ASIN #'].str.contains(r'^[a-zA-Z0-9]{10}$', regex=True)]
+
             elif supplier_name in ['empiredistribution']:
                 # pdb.set_trace()
                 catalogdf=get_catalog_google_sheets(url)
@@ -331,20 +340,15 @@ def download_online_excel_catalogs(df, tmp_dir, test_catalogs=None):
 
                 catalogdf=strip_column_names(catalogdf)
 
-
-
-            elif 'cosmetixclub' in supplier_name:
-                catalogdf=get_catalog_google_sheets(url)
-                catalogdf=catalogdf.iloc[3:]
+            elif supplier_name in ['palletfly','coralport_3m','coralport_avery','coralport_telegram','coralport_wholesale','tjsgroupllc']:
+                catalogdf = get_catalog_google_sheets_2(url, sheet_name)
                 catalogdf=make_first_row_header(catalogdf)
 
-            elif 'drachmatrading' in supplier_name:
-                catalogdf=get_catalog_google_sheets(url)
-                catalogdf=catalogdf[catalogdf['URL LINK'].str.strip().str.startswith('https://')]
-
-            elif 'buywholesaletoday' in supplier_name:
-                catalogdf=get_catalog_google_sheets(url)
-                catalogdf=catalogdf[catalogdf['ASIN #'].str.contains(r'^[a-zA-Z0-9]{10}$', regex=True)]
+            elif supplier_name in ['medcare_bestselling', 'medcare_master', 'medcare_closeout']:
+                catalogdf=get_catalog_google_sheets_2(url, sheet_name='Wholesale Best-Selling List')
+                catalogdf=catalogdf.iloc[1:,]
+                catalogdf=make_first_row_header(catalogdf)
+                catalogdf=strip_column_names(catalogdf)
 
             elif supplier_name in ['weinersltd', 'koleimports']:
                 catalogdf=get_catalog_google_sheets_4(url)
