@@ -50,8 +50,10 @@ def get_catalog_google_sheets(catalog_link):
 def get_catalog_google_sheets_2(url, sheet_name, headers=None):
     # palletfly, coralport all sheets
     try:
-        if headers: content = requests.get(url, headers=headers).content
-        else: content = requests.get(url).content
+        if headers: 
+            content = requests.get(url, headers=headers).content
+        else: 
+            content = requests.get(url).content
         
         xl = pd.ExcelFile(content)
         df=pd.DataFrame(xl.book[sheet_name].values) 
@@ -169,8 +171,9 @@ def label_data(df, catalogs):
             except Exception as e:
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                print(f'Error in {record.Distributor.item()}')
+                print(f'Error in {name}')
                 print(e, exc_type, fname, exc_tb.tb_lineno)
+                
 
     return df, catalogs
 
